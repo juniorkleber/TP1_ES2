@@ -1,8 +1,16 @@
+from tkinter import Tk, Button, Entry, Label, ttk, Toplevel, Menu, messagebox, StringVar
 import pyodbc
 
-# Importa o módulo tkinter para criar interfaces gráficas
-from tkinter import *
-from tkinter import ttk
+#Função para realizar a conexão com o banco de dados para um função
+#Para que não seja necessária uma nova conexão a cada interação
+def connect():
+    # Configuração da conexão com o banco de dados
+    dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+    
+    # Cria uma nova conexão com o banco de dados
+    connection = pyodbc.connect(dadosConexao)
+
+    return connection
 
 class product:
      # Inicializa a interface do produto com a janela principal e a conexão ao banco de dados
@@ -43,14 +51,7 @@ class product:
         for item in self.treeview.get_children():
             self.treeview.delete(item)
 
-        # Configuração da conexão com o banco de dados
-        dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
-
-        # Cria uma nova conexão com o banco de dados
-        connection = pyodbc.connect(dadosConexao)
-
-        # Cria um novo cursor para executar SQL na nova conexão
-        cursor = connection.cursor()
+        connection = connect()
 
         # Realiza uma consulta SQL para selecionar todos os produtos
         cursor = connection.cursor()
@@ -116,11 +117,7 @@ class product:
             # Coleta os valores inseridos nos campos de entrada.
             register_new_product_ = (name.get(), description.get(), price.get())
 
-            # Configuração da conexão com o banco de dados
-            dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
-
-            # Cria uma nova conexão com o banco de dados
-            connection = pyodbc.connect(dadosConexao)
+            connection = connect()
 
             # Cria um novo cursor para executar SQL na nova conexão
             cursor = connection.cursor()
@@ -209,11 +206,7 @@ class product:
             # Atualiza os valores do item na TreeView com os novos valores.
             self.treeview.item(selected_item, values=(select_values[0], product, new_description, new_price))
 
-            # Configuração da conexão com o banco de dados
-            dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
-
-            # Cria uma nova conexão com o banco de dados
-            connection = pyodbc.connect(dadosConexao)
+            connection = connect()
 
             # Cria um novo cursor para executar SQL na nova conexão
             cursor = connection.cursor()
@@ -252,11 +245,7 @@ class product:
             # Remove o item da TreeView
             self.treeview.delete(selected_item)
             
-            # Configuração da conexão com o banco de dados
-            dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
-
-            # Cria uma nova conexão com o banco de dados
-            connection = pyodbc.connect(dadosConexao)
+            connection = connect()
 
             # Cria um novo cursor para executar SQL na nova conexão
             cursor = connection.cursor()
@@ -274,11 +263,7 @@ class product:
     # Se os campos estiverem vazios, exibe todos os produtos
     def filter(self, x, y):
 
-        # Configuração da conexão com o banco de dados
-        dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
-
-        # Cria uma nova conexão com o banco de dados
-        connection = pyodbc.connect(dadosConexao)
+        connection = connect()
 
         # Cria um novo cursor para executar SQL na nova conexão
         cursor = connection.cursor()
@@ -312,19 +297,6 @@ class product:
         #preenche preview com dados filtrados   
         for data in product:
             self.treeview.insert('', 'end', values=(data[0], data[1],data[2],data[3]))
-    def calculate_price_statistics(self):
-        if not self.products:
-            messagebox.showinfo("No Products", "No products available to calculate statistics.")
-            return
-
-        prices = [product[3] for product in self.products]
-
-        average_price = sum(prices) / len(prices)
-        max_price = max(prices)
-        min_price = min(prices)
-
-        messagebox.showinfo("Price Statistics", f"Average Price: {average_price:.2f}\nMaximum Price: {max_price}\nMinimum Price: {min_price}")
-
 
 def register(window1):
     # Cria uma nova janela superior (Toplevel) para o cadastro.
@@ -366,20 +338,16 @@ def register(window1):
         new_user = entry1.get()
         new_password = entry2.get()
 
-        # Configuração da conexão com o banco de dados
-        dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
-
-        # Cria uma nova conexão com o banco de dados
-        conexao = pyodbc.connect(dadosConexao)
+        connection = connect()
 
         # Cria um novo cursor para executar SQL na nova conexão
-        cursor = conexao.cursor()
+        cursor = connection.cursor()
 
         # Executa uma operação SQL para inserir os dados no banco de dados.
         cursor.execute("INSERT INTO Usuarios (Nome, Senha) VALUES (?, ?)", (new_user, new_password))
 
         # Grava as alterações no banco de dados.
-        conexao.commit()
+        connection.commit()
 
         # Feche a janela de cadastro após a conclusão
         window2.destroy()
@@ -485,11 +453,8 @@ def show_login_window():
 
 #Funçao que é responsavel pela abertura e gerencia da tela principal do programa
 def open_main_interface():
-    # Configuração da conexão com o banco de dados
-    dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
 
-    # Cria uma nova conexão com o banco de dados
-    connection = pyodbc.connect(dadosConexao)
+    connection = connect()
 
     # Cria um novo cursor para executar SQL na nova conexão
     cursor = connection.cursor()
@@ -546,6 +511,7 @@ def open_main_interface():
     # Cria um botão "Deletar" na janela que chama a função delete() quando clicado
     btn_delete = Button(main_window, text="Delete", font="Arial 26", command=action3)
     btn_delete.grid(row=4,column=4, columnspan=4, sticky="NSEW", padx=20, pady=5)
+
 
     # Cria uma instância da classe ProductInterface
     interface = product(main_window)
